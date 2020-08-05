@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-//@ConditionalOnProperty(value = "flathero.storage.gcp.enabled", havingValue = "false")
+//@ConditionalOnProperty(value = "", havingValue = "false")
 @RequiredArgsConstructor
 public class LocalStorageService implements StorageService {
 
