@@ -1,17 +1,22 @@
-package com.bold.sing.music.songmusic.boundary;
+package com.bold.sing.music.file.boundary;
 
+import com.bold.sing.music.file.control.FileDownloadTO;
 import com.bold.sing.music.file.control.FileService;
 import com.bold.sing.music.file.control.FileWrapper;
 import com.bold.sing.music.file.control.MultipartFileWrapper;
 import com.bold.sing.music.file.entity.FileReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,4 +37,13 @@ public class FilesController {
         return FileReferenceDTO.from(fileReference);
     }
 
+    @GetMapping("{id}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable("id") UUID fileId)  {
+        FileDownloadTO fileDownloadTO = fileService.fetchFileById(fileId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(fileDownloadTO.getMimeType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDownloadTO.getResource().getFilename() + "\"")
+                .body(fileDownloadTO.getResource());
+    }
 }
+

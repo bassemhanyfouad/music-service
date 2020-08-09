@@ -7,9 +7,9 @@ import com.bold.sing.music.storage.StorageResponse;
 import com.bold.sing.music.storage.StorageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.client.HttpClientErrorException;
 
 import javax.ws.rs.NotFoundException;
 import java.io.IOException;
@@ -44,6 +44,17 @@ public class FileService {
         throw new TechnicalException("Upload Failed");
     }
 
+    public FileDownloadTO fetchFileById(UUID fileId) {
+        FileReference fileReference = fetchById(fileId);
+        Optional<Resource> resourceOptional = fetchFileFromStorage(fileReference.getStorageId());
+        if (resourceOptional.isPresent()) {
+            Resource resource = resourceOptional.get();
+
+            return new FileDownloadTO(resource, fileReference.getMimeType(), fileReference.getOriginalFilename());
+        }
+        throw new TechnicalException("Upload Failed");
+    }
+
     public FileReference fetchById(UUID id) {
         Optional<FileReference> fileReferenceOptional = fileReferenceRepository.findById(id);
         return fileReferenceOptional.orElseThrow(NotFoundException::new);
@@ -55,8 +66,17 @@ public class FileService {
     private Optional<StorageResponse> uploadToStorage(FileWrapper file, String contentType) {
         try {
             return storageService.store(
-                    file.getInputStream(), // stream is closed by com.google.cloud.storage.Storage.create(...)
+                    file, // stream is closed by com.google.cloud.storage.Storage.create(...)
                     contentType);
+        } catch (Exception e) {
+            // since this is also used in the erp use case we don't want to cause exceptions and abort the flow
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Resource> fetchFileFromStorage(String storageId) {
+        try {
+            return Optional.of(storageService.retrieve(storageId));
         } catch (Exception e) {
             // since this is also used in the erp use case we don't want to cause exceptions and abort the flow
             return Optional.empty();

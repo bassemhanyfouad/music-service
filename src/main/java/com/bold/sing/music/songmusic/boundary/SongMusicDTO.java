@@ -3,6 +3,8 @@ package com.bold.sing.music.songmusic.boundary;
 
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,4 +20,7 @@ public class SongMusicDTO {
     private Set<String> moods;
     private Set<String> genres;
     private UUID fileReferenceId;
+
+    @Builder.Default
+    private List<SongLyricsLineDTO> songLyricsLines = new ArrayList<>();
 }

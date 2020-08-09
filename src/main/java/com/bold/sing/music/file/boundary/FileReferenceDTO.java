@@ -1,4 +1,4 @@
-package com.bold.sing.music.songmusic.boundary;
+package com.bold.sing.music.file.boundary;
 
 import com.bold.sing.music.file.entity.FileReference;
 import lombok.*;

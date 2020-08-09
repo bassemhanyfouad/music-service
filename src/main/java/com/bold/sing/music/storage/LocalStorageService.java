@@ -1,21 +1,31 @@
 package com.bold.sing.music.storage;
 
+import com.bold.sing.music.exception.TechnicalException;
+import com.bold.sing.music.file.control.FileWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.ws.rs.NotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -27,48 +37,58 @@ public class LocalStorageService implements StorageService {
 
     @Override
     @SneakyThrows
-    public Optional<StorageResponse> store(InputStream is, String contentType) {
-        return store(IOUtils.toByteArray(is), null);
+    public Optional<StorageResponse> store(FileWrapper file, String contentType) {
+        return store(file.getOriginalFilename(), file.getInputStream(), contentType);
     }
 
     @Override
     @SneakyThrows
-    public Optional<StorageResponse> store(byte[] data, String contentType) {
+    public Optional<StorageResponse> store(String originalFilename, InputStream inputStream, String contentType) {
 
-        String fileName = UUID.randomUUID().toString() + ".bin";
-        File file = new File(FileUtils.getUserDirectory(), fileName);
-        FileUtils.writeByteArrayToFile(file, data);
+        // Normalize file name
+        String fileName = StringUtils.cleanPath(originalFilename);
 
-        log.info("################### Storing file to local filesystem path: {}" + file.getPath());
+        try {
+            // Check if the file's name contains invalid characters
+            if (fileName.contains("..")) {
+                throw new IllegalArgumentException("Sorry! Filename contains invalid path sequence " + fileName);
+            }
+            Path fileStorageLocation = Paths.get(FileUtils.getUserDirectory().toURI())
+                    .toAbsolutePath().normalize();
+            // Copy file to the target location (Replacing existing file with the same name)
+            Path targetLocation = fileStorageLocation.resolve(fileName);
+            Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-        // this is needed so that downloads also work in spring boot tests which use a random port
-        // See https://stackoverflow.com/questions/30312058/spring-boot-how-to-get-the-running-port
-        String port = environment.getProperty("local.server.port");
-        return Optional.of(StorageResponse.builder()
-                .storageId(fileName)
-                // we need the full url here so that e.g. portal uploads also work with attachments
-                .selfLink("http://localhost:" + port + "/music-svc/api/attachments/" + fileName)
-                .contentType(contentType)
-                .md5Checksum(DigestUtils.md5Hex(data))
-                .build()
-        );
+            String port = environment.getProperty("local.server.port");
+
+            return Optional.of(StorageResponse.builder()
+                    .storageId(fileName)
+                    // we need the full url here so that e.g. portal uploads also work with attachments
+                    .selfLink("http://localhost:" + port + "/music-svc/api/attachments/" + fileName)
+                    .contentType(contentType)
+                    .md5Checksum(DigestUtils.md5Hex(inputStream))
+                    .build()
+            );
+        } catch (IOException ex) {
+            throw new TechnicalException("Could not store file " + fileName + ". Please try again!", ex);
+        }
     }
 
     @Override
     @SneakyThrows
-    public Optional<StorageResponse>  store(MultipartFile file) {
-        return store(file.getBytes(), file.getContentType());
-    }
+    public Resource retrieve(String name) {
+        try {
+            File file = new File(FileUtils.getUserDirectory(), name);
 
-    @Override
-    @SneakyThrows
-    public InputStream retrieve(String name) {
-        File file = new File(FileUtils.getTempDirectory(), name);
-        return new FileInputStream(file);
-    }
-
-    @Override
-    public StoragePage getStoragePageForDirectory(String directory, @Nullable String nextPageToken) {
-        throw new UnsupportedOperationException("Retrieving a bucket page isn't supported yet locally.");
+            Path filePath = file.toPath();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists()) {
+                return resource;
+            } else {
+                throw new NotFoundException("File not found " + name);
+            }
+        } catch (MalformedURLException ex) {
+            throw new NotFoundException("File not found " + name, ex);
+        }
     }
 }
