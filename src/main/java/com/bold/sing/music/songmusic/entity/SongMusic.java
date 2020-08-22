@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -56,12 +57,16 @@ public class SongMusic extends BaseEntity {
     private FileReference fileReference;
 
     public static SongMusic from(SongMusicDTO songMusicDTO) {
-        return SongMusic.builder()
+        SongMusic songMusic = SongMusic.builder()
                 .artist(songMusicDTO.getArtist())
                 .genres(songMusicDTO.getGenres())
                 .moods(songMusicDTO.getMoods())
                 .title(songMusicDTO.getTitle())
                 .build();
+        songMusic.addSongLyricsLines(songMusicDTO.getSongLyricsLines().stream()
+                .map(SongLyricsLine::from)
+                .collect(Collectors.toList()));
+        return songMusic;
     }
 
     public SongMusicDTO toDTO() {
@@ -71,6 +76,15 @@ public class SongMusic extends BaseEntity {
                 .moods(moods)
                 .title(title)
                 .fileReferenceId(fileReference.getId())
+                .songLyricsLines(songLyricsLines.stream()
+                        .map(SongLyricsLine::toDTO)
+                        .collect(Collectors.toList()))
                 .build();
+    }
+
+    public void addSongLyricsLines(List<SongLyricsLine> songLyricsLines) {
+        songLyricsLines.stream()
+                .forEach(songLyricsLine -> songLyricsLine.setSongMusic(this));
+        this.songLyricsLines.addAll(songLyricsLines);
     }
 }

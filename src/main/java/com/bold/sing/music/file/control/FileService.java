@@ -11,6 +11,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 import javax.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,10 +36,12 @@ public class FileService {
             FileReference fileReference = FileReference.builder()
                     .checkSum(calculateCheckSum(file))
                     .mimeType(contentType)
+                    .duration(storageResponse.getDuration())
                     .storageId(storageResponse.getStorageId())
                     .originalFilename(file.getOriginalFilename())
                     .url(storageResponse.getSelfLink())
                     .build();
+
             fileReferenceRepository.save(fileReference);
             return fileReference;
         }

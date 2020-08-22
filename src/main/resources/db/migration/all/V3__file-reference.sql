@@ -6,9 +6,11 @@ create table file_reference
     original_file_name text not null,
     storage_id         text not null,
     url                text not null,
+    duration           bigint,
     created_date       timestamptz,
     modified_date      timestamptz,
     version            bigint,
+
     primary key (id)
 );
 

@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.ToString;
 import lombok.Value;
 
+import java.time.Duration;
+
 @Builder
 @Value
 @ToString
@@ -14,4 +16,5 @@ public class StorageResponse {
 	private String md5Checksum;
 	// the size in bytes
 	private Long fileSize;
+	private Duration duration;
 }

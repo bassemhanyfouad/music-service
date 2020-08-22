@@ -6,6 +6,7 @@ import lombok.*;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.time.Duration;
 
 @Getter
 @Setter
@@ -30,4 +31,11 @@ public class FileReference extends BaseEntity {
 
     @Column(name = "url")
     private String url;
+
+    /**
+     * only relevant for audio files
+     */
+    @Column(name = "duration")
+    private Duration duration;
+
 }

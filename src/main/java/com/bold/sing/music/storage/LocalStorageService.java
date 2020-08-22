@@ -2,6 +2,7 @@ package com.bold.sing.music.storage;
 
 import com.bold.sing.music.exception.TechnicalException;
 import com.bold.sing.music.file.control.FileWrapper;
+import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -10,14 +11,12 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
+import javax.sound.sampled.AudioFileFormat;
 import javax.ws.rs.NotFoundException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -25,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.Optional;
 
 @Slf4j
@@ -47,8 +47,8 @@ public class LocalStorageService implements StorageService {
 
         // Normalize file name
         String fileName = StringUtils.cleanPath(originalFilename);
-
         try {
+
             // Check if the file's name contains invalid characters
             if (fileName.contains("..")) {
                 throw new IllegalArgumentException("Sorry! Filename contains invalid path sequence " + fileName);
@@ -58,6 +58,12 @@ public class LocalStorageService implements StorageService {
             // Copy file to the target location (Replacing existing file with the same name)
             Path targetLocation = fileStorageLocation.resolve(fileName);
             Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            File createdFile = new File(targetLocation.toUri());
+
+            MpegAudioFileReader mpegAudioFileReader = new MpegAudioFileReader();
+            AudioFileFormat format = mpegAudioFileReader.getAudioFileFormat(createdFile);
+
+            long seconds = (long) format.properties().get("duration") / 1000000;
 
             String port = environment.getProperty("local.server.port");
 
@@ -65,6 +71,7 @@ public class LocalStorageService implements StorageService {
                     .storageId(fileName)
                     // we need the full url here so that e.g. portal uploads also work with attachments
                     .selfLink("http://localhost:" + port + "/music-svc/api/attachments/" + fileName)
+                    .duration(Duration.ofSeconds(seconds))
                     .contentType(contentType)
                     .md5Checksum(DigestUtils.md5Hex(inputStream))
                     .build()

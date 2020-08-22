@@ -1,5 +1,6 @@
 package com.bold.sing.music.songmusic.entity;
 
+import com.bold.sing.music.songmusic.boundary.SongLyricsLineDTO;
 import lombok.*;
 
 import javax.persistence.*;
@@ -26,4 +27,20 @@ public class SongLyricsLine extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "song_music_id")
     private SongMusic songMusic;
+
+
+    public static SongLyricsLine from(SongLyricsLineDTO songLyricsLineDTO) {
+        return SongLyricsLine.builder()
+                .startTimeFromMusicBeginning(songLyricsLineDTO.getStartTimeFromMusicBeginning())
+                .endTimeFromMusicBeginning(songLyricsLineDTO.getStartTimeFromMusicBeginning())
+                .text(songLyricsLineDTO.getText())
+                .build();
+    }
+
+    public SongLyricsLineDTO toDTO() {
+        return SongLyricsLineDTO.builder()
+                .startTimeFromMusicBeginning(this.startTimeFromMusicBeginning)
+                .text(this.text)
+                .build();
+    }
 }

@@ -1,7 +1,10 @@
 package com.bold.sing.music.songmusic.boundary;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+
+import java.time.Duration;
 
 
 @Getter
@@ -12,5 +15,5 @@ import lombok.*;
 @Builder
 public class SongLyricsLineDTO {
     private String text;
-    private Long startTimeFromMusicBeginning;
+    private Duration startTimeFromMusicBeginning;
 }
