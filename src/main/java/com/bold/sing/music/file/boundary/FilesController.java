@@ -32,7 +32,6 @@ public class FilesController {
                 .multipartFile(file)
                 .originalFilename(file.getOriginalFilename())
                 .build();
-
         FileReference fileReference = fileService.uploadAndCreateFile(fileWrapper);
         return FileReferenceDTO.from(fileReference);
     }

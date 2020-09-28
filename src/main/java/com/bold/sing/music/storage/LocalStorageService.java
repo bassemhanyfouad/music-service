@@ -60,18 +60,21 @@ public class LocalStorageService implements StorageService {
             Files.copy(inputStream, targetLocation, StandardCopyOption.REPLACE_EXISTING);
             File createdFile = new File(targetLocation.toUri());
 
-            MpegAudioFileReader mpegAudioFileReader = new MpegAudioFileReader();
-            AudioFileFormat format = mpegAudioFileReader.getAudioFileFormat(createdFile);
+            Duration trackDuration = null;
+            if (contentType.equals("audio/mpeg")) {
+                MpegAudioFileReader mpegAudioFileReader = new MpegAudioFileReader();
+                AudioFileFormat format = mpegAudioFileReader.getAudioFileFormat(createdFile);
 
-            long seconds = (long) format.properties().get("duration") / 1000000;
-
+                long seconds = (long) format.properties().get("duration") / 1000000;
+                trackDuration = Duration.ofSeconds(seconds);
+            }
             String port = environment.getProperty("local.server.port");
 
             return Optional.of(StorageResponse.builder()
                     .storageId(fileName)
                     // we need the full url here so that e.g. portal uploads also work with attachments
                     .selfLink("http://localhost:" + port + "/music-svc/api/attachments/" + fileName)
-                    .duration(Duration.ofSeconds(seconds))
+                    .duration(trackDuration)
                     .contentType(contentType)
                     .md5Checksum(DigestUtils.md5Hex(inputStream))
                     .build()
