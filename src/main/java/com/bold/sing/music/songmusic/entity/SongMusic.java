@@ -1,5 +1,6 @@
 package com.bold.sing.music.songmusic.entity;
 
+import com.bold.sing.music.file.boundary.FileReferenceDTO;
 import com.bold.sing.music.file.entity.FileReference;
 import com.bold.sing.music.songmusic.boundary.SongMusicDTO;
 import lombok.*;
@@ -20,10 +21,6 @@ import java.util.stream.Collectors;
 @Builder
 @AllArgsConstructor
 public class SongMusic extends BaseEntity {
-
-    @Column(name = "cover_photo_url")
-    private String coverPhotoUrl;
-
     @Column(name = "title")
     private String title;
 
@@ -56,6 +53,10 @@ public class SongMusic extends BaseEntity {
     @JoinColumn(name = "file_reference_id")
     private FileReference fileReference;
 
+    @OneToOne
+    @JoinColumn(name = "cover_photo_id")
+    private FileReference coverPhoto;
+
     public static SongMusic from(SongMusicDTO songMusicDTO) {
         SongMusic songMusic = SongMusic.builder()
                 .artist(songMusicDTO.getArtist())
@@ -75,7 +76,8 @@ public class SongMusic extends BaseEntity {
                 .genres(genres)
                 .moods(moods)
                 .title(title)
-                .fileReferenceId(fileReference.getId())
+                .fileReference(FileReferenceDTO.from(fileReference))
+                .coverPhoto(FileReferenceDTO.from(coverPhoto))
                 .songLyricsLines(songLyricsLines.stream()
                         .map(SongLyricsLine::toDTO)
                         .collect(Collectors.toList()))

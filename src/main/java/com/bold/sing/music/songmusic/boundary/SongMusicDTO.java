@@ -1,6 +1,7 @@
 package com.bold.sing.music.songmusic.boundary;
 
 
+import com.bold.sing.music.file.boundary.FileReferenceDTO;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -19,7 +20,8 @@ public class SongMusicDTO {
     private String artist;
     private Set<String> moods;
     private Set<String> genres;
-    private UUID fileReferenceId;
+    private FileReferenceDTO fileReference;
+    private FileReferenceDTO coverPhoto;
 
     @Builder.Default
     private List<SongLyricsLineDTO> songLyricsLines = new ArrayList<>();

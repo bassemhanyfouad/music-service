@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -20,10 +23,20 @@ public class SongMusicService {
     @Transactional
     public SongMusic createSongMusic(SongMusicDTO songMusicDTO) {
         SongMusic songMusic = SongMusic.from(songMusicDTO);
-        FileReference fileReference = fileService.fetchById(songMusicDTO.getFileReferenceId());
+        FileReference fileReference = fileService.fetchById(songMusicDTO.getFileReference().getId());
+        FileReference coverPhoto = fileService.fetchById(songMusicDTO.getCoverPhoto().getId());
         songMusic.setFileReference(fileReference);
+        songMusic.setCoverPhoto(coverPhoto);
         songMusicRepository.save(songMusic);
         return songMusic;
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<SongMusic> getAllSongMusics() {
+        List<SongMusic> songMusics = songMusicRepository.findAll();
+        songMusics.sort(Comparator.comparing(SongMusic::getCreatedDate).reversed());
+        return songMusics;
     }
 
 }
