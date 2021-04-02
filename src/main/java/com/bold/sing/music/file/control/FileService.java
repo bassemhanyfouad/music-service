@@ -7,8 +7,10 @@ import com.bold.sing.music.storage.StorageResponse;
 import com.bold.sing.music.storage.StorageService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.sound.sampled.AudioInputStream;
@@ -26,23 +28,27 @@ import java.util.UUID;
 public class FileService {
     private final StorageService storageService;
     private final FileReferenceRepository fileReferenceRepository;
+    private final Environment environment;
 
+    @Transactional
     public FileReference uploadAndCreateFile(FileWrapper file) {
         String contentType = file.getContentType();
         Optional<StorageResponse> storageResponseOptional = uploadToStorage(file, contentType);
         if (storageResponseOptional.isPresent()) {
             StorageResponse storageResponse = storageResponseOptional.get();
             log.info("upload to storage successful. Response from storage: {} ", storageResponse);
+            String port = environment.getProperty("local.server.port");
             FileReference fileReference = FileReference.builder()
                     .checkSum(calculateCheckSum(file))
                     .mimeType(contentType)
                     .duration(storageResponse.getDuration())
                     .storageId(storageResponse.getStorageId())
                     .originalFilename(file.getOriginalFilename())
-                    .url(storageResponse.getSelfLink())
+                    .url("")
                     .build();
 
             fileReferenceRepository.save(fileReference);
+            fileReference.setUrl("http://localhost:" + port + "/music-svc/api/files/" + fileReference.getId());
             return fileReference;
         }
         throw new TechnicalException("Upload Failed");
