@@ -23,7 +23,7 @@ public class BaseEntity implements Serializable {
 			strategy = "org.hibernate.id.UUIDGenerator"
 	)
 	@Column(name = "id", updatable = false)
-	private UUID id;
+	protected UUID id;
 
 	@Column(name = "created_date", updatable = false)
 	private Instant createdDate;

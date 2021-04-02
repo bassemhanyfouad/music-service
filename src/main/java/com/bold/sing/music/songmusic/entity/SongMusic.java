@@ -72,6 +72,7 @@ public class SongMusic extends BaseEntity {
 
     public SongMusicDTO toDTO() {
         return SongMusicDTO.builder()
+                .id(id)
                 .artist(artist)
                 .genres(genres)
                 .moods(moods)

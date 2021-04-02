@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,5 +26,10 @@ public class SongMusicController {
     @GetMapping
     public List<SongMusicDTO> getAllSongMusics() {
         return songMusicService.getAllSongMusics().stream().map(SongMusic::toDTO).collect(Collectors.toList());
+    }
+
+    @GetMapping("{id}")
+    public SongMusicDTO fetchSongMusicById(@PathVariable("id") UUID songMusicId) {
+        return songMusicService.fetchSongMusicById(songMusicId).toDTO();
     }
 }

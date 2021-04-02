@@ -16,6 +16,7 @@ import java.util.UUID;
 @ToString
 @Builder
 public class SongMusicDTO {
+    private UUID id;
     private String title;
     private String artist;
     private Set<String> moods;

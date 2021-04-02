@@ -10,8 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.ws.rs.NotFoundException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -37,6 +39,11 @@ public class SongMusicService {
         List<SongMusic> songMusics = songMusicRepository.findAll();
         songMusics.sort(Comparator.comparing(SongMusic::getCreatedDate).reversed());
         return songMusics;
+    }
+
+    @Transactional(readOnly = true)
+    public SongMusic fetchSongMusicById(UUID id) {
+        return songMusicRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
 }
