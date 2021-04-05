@@ -16,4 +16,5 @@ import java.time.Duration;
 public class SongLyricsLineDTO {
     private String text;
     private Duration startTimeFromMusicBeginning;
+    private Duration endTimeFromMusicBeginning;
 }

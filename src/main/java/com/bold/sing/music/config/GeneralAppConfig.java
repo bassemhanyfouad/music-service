@@ -29,7 +29,7 @@ public class GeneralAppConfig {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		mapper.configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false);
+		mapper.enable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS);
 		mapper.registerModules(new JavaTimeModule());
 		return mapper;
 	}

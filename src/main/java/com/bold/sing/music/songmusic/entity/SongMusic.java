@@ -2,6 +2,7 @@ package com.bold.sing.music.songmusic.entity;
 
 import com.bold.sing.music.file.boundary.FileReferenceDTO;
 import com.bold.sing.music.file.entity.FileReference;
+import com.bold.sing.music.songmusic.boundary.SongLyricsLineDTO;
 import com.bold.sing.music.songmusic.boundary.SongMusicDTO;
 import lombok.*;
 
@@ -71,7 +72,7 @@ public class SongMusic extends BaseEntity {
     }
 
     public SongMusicDTO toDTO() {
-        return SongMusicDTO.builder()
+        SongMusicDTO songMusicDTO = SongMusicDTO.builder()
                 .id(id)
                 .artist(artist)
                 .genres(genres)
@@ -83,6 +84,15 @@ public class SongMusic extends BaseEntity {
                         .map(SongLyricsLine::toDTO)
                         .collect(Collectors.toList()))
                 .build();
+
+
+        List<SongLyricsLineDTO> lyricsLines = songMusicDTO.getSongLyricsLines();
+        for (int i = 0, lyricsLinesSize = lyricsLines.size(); i < lyricsLinesSize; i++) {
+            SongLyricsLineDTO songLyricsLineDTO = lyricsLines.get(i);
+            songLyricsLineDTO.setEndTimeFromMusicBeginning(songLyricsLines.size() > i + 1 ? songLyricsLines.get(i + 1).getStartTimeFromMusicBeginning() : null);
+        }
+
+        return songMusicDTO;
     }
 
     public void addSongLyricsLines(List<SongLyricsLine> songLyricsLines) {
